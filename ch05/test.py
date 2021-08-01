@@ -82,8 +82,40 @@ def gradient_check():
     grad_backprop = network.gradient(x_batch, t_batch)
 
     for key in grad_numerical.keys():
-        diff = np.average( np.abs(grad_backprop[key] - np.abs(grad_numerical[key])))
+        diff = np.average( np.abs(grad_backprop[key] - grad_numerical[key]))
         print(key + ':' + str(diff))
 
+
+def train_network():
+    (x_train, t_train), (x_test, t_test) = load_mnist(normalize=True, one_hot_label=True)
+
+    network = TwoLayerNet(input_size=784, hidden_size=50, output_size=10)
+    
+    iters_num = 10000
+    batch_size = 100
+    learning_rate = 0.01
+    train_size = x_train.shape[0]
+    iter_per_epoch = max(train_size / batch_size, 1)
+
+    for i in range(iters_num):
+        batch_mask = np.random.choice(train_size, batch_size)
+        x_batch = x_train[batch_mask]
+        t_batch = t_train[batch_mask]
+
+        grad = network.gradient(x_batch, t_batch)
+
+        for key in ('b1', 'b2', 'W1', 'W2'):
+            network.params[key] -= grad[key] * learning_rate
+
+        if i % iter_per_epoch == 0:
+            loss = network.loss(x_batch, t_batch)
+            train_acc = network.accuracy(x_train, t_train)
+            test_acc = network.accuracy(x_test, t_test)
+            print('-----------------')
+            print('loss           : ' + str(loss))
+            print('train accuracy : ' + str(train_acc))
+            print('test accuracy  : ' + str(test_acc))
+
 if __name__ == '__main__':
-    gradient_check()
+    # gradient_check()
+    train_network()
